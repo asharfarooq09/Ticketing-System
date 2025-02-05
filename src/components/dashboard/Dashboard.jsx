@@ -31,6 +31,16 @@ const initialFormData = {
   remarks: "",
 };
 
+function getToday() {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0"); // Ensure two digits
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed, so we add 1
+  const year = today.getFullYear();
+
+  const formattedDate = `${day}/${month}/${year}`;
+  return formattedDate;
+}
+
 const Dashboard = () => {
   const [tickets, setTickets] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -64,11 +74,15 @@ const Dashboard = () => {
   }, [userContext?.user, role, userEmail]);
 
   const handleSubmit = async (values) => {
+    console.log("here");
+
     try {
       if (isEdit) {
         const ticketRef = doc(db, "tickets", values.id);
         await updateDoc(ticketRef, values);
       } else {
+        values.date = getToday();
+
         await addDoc(collection(db, "tickets"), values);
       }
       setDialogOpen(false);

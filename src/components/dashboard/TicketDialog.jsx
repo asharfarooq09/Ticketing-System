@@ -11,7 +11,6 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import useForm from "../../hooks/useForm";
 
 const TicketDialog = ({
@@ -44,8 +43,6 @@ const TicketDialog = ({
         return value && /^[0-9]{10}$/.test(value)
           ? undefined
           : "Enter a valid 10-digit phone number";
-      case "date":
-        return value ? undefined : "Date is required";
       default:
         return undefined;
     }
@@ -226,23 +223,22 @@ const TicketDialog = ({
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <DatePicker
-              label="Date"
-              value={values.date}
-              onChange={(newDate) => setValues({ ...values, date: newDate })}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  error={!!errors.date}
-                  helperText={errors.date}
-                  disabled={disableField("date")}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
-                />
-              )}
-            />
-          </Grid>
+          {(isSupportAgent || (isCustomer && isView)) && (
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Created Date"
+                name="date"
+                type="text"
+                value={values.date}
+                onChange={handleChange}
+                error={!!errors.date}
+                helperText={errors.date}
+                disabled={true}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+              />
+            </Grid>
+          )}
           <Grid item xs={12} md={6}>
             <FormControlLabel
               control={
