@@ -16,7 +16,7 @@
     "@mui/icons-material": "^6.4.2",
     "@mui/material": "^6.4.2",
     "@mui/x-date-pickers": "^7.25.0",
-    "date-fns": "^2.29.3",
+    "date-fns": "^3.2.0",
     "firebase": "^11.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -33,5 +33,8 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
     "vite": "^6.0.5"
+  },
+  "resolutions": {
+    "date-fns": "3.2.0"
   }
 }
