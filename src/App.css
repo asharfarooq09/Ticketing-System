@@ -1,0 +1,7 @@
+.container{
+  font-family: "Outfit";
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+}

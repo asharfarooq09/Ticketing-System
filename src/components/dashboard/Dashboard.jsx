@@ -1,0 +1,188 @@
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Card, CardContent, Button } from "@mui/material";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "../../firebase";
+import { useUserContext } from "../../AuthProvider";
+import { useNavigate } from "react-router-dom";
+import TemporaryDrawer from "../sidebar/Sidebar";
+import TicketList from "./TicketList";
+import TicketDialog from "./TicketDialog";
+
+const initialFormData = {
+  name: "",
+  title: "",
+  description: "",
+  department: "Yet to Assign",
+  priority: "",
+  category: "",
+  email: "",
+  phone: "",
+  date: null,
+  terms: false,
+  status: "Pending",
+  file: null,
+  remarks: "",
+};
+
+const Dashboard = () => {
+  const [tickets, setTickets] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [isView, setIsView] = useState(false);
+  const [formData, setFormData] = useState(initialFormData);
+
+  const userContext = useUserContext();
+  const navigate = useNavigate();
+  const role = userContext?.user?.role;
+  const userEmail = userContext?.user?.email;
+
+  useEffect(() => {
+    if (!userContext?.user) {
+      navigate("/");
+    }
+  }, [userContext, navigate]);
+
+  useEffect(() => {
+    if (userContext?.user) {
+      const fetchTickets = async () => {
+        const querySnapshot = await getDocs(collection(db, "tickets"));
+        const ticketData = querySnapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        setTickets(ticketData);
+      };
+      fetchTickets();
+    }
+  }, [userContext?.user, role, userEmail]);
+
+  const handleSubmit = async (values) => {
+    try {
+      if (isEdit) {
+        const ticketRef = doc(db, "tickets", values.id);
+        await updateDoc(ticketRef, values);
+      } else {
+        await addDoc(collection(db, "tickets"), values);
+      }
+      setDialogOpen(false);
+      setFormData(initialFormData);
+      alert("Ticket processed successfully!");
+      const querySnapshot = await getDocs(collection(db, "tickets"));
+      const ticketData = querySnapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      setTickets(ticketData);
+    } catch (error) {
+      console.error("Error processing ticket: ", error);
+    }
+  };
+
+  const handleAdd = () => {
+    setFormData(initialFormData);
+    setIsEdit(false);
+    setIsView(false);
+    setDialogOpen(true);
+  };
+
+  const handleEdit = (ticket) => {
+    setFormData(ticket);
+    setIsEdit(true);
+    setIsView(false);
+    setDialogOpen(true);
+  };
+
+  const handleView = (ticket) => {
+    setFormData(ticket);
+    setIsView(true);
+    setIsEdit(false);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, "tickets", id));
+      setTickets(tickets.filter((ticket) => ticket.id !== id));
+    } catch (error) {
+      console.error("Error deleting ticket: ", error);
+    }
+  };
+
+  const handleClose = () => {
+    setDialogOpen(false);
+    setIsEdit(false);
+    setIsView(false);
+    setFormData(initialFormData);
+  };
+
+  return (
+    <Box
+      sx={{
+        maxWidth: "1100px",
+        padding: "20px",
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    >
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+      >
+        <TemporaryDrawer />
+        Tickets Management
+      </Typography>
+      <Card sx={{ marginTop: 3, padding: 2 }}>
+        <CardContent>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 2,
+            }}
+          >
+            <Typography variant="h5">Tickets List</Typography>
+            {role === "customer" && (
+              <Button
+                variant="contained"
+                onClick={handleAdd}
+                sx={{
+                  backgroundColor: "#4caf50",
+                  "&:hover": { backgroundColor: "#45a049" },
+                }}
+              >
+                Add Ticket
+              </Button>
+            )}
+          </Box>
+          <TicketList
+            tickets={tickets}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            role={role}
+          />
+        </CardContent>
+      </Card>
+      <TicketDialog
+        open={dialogOpen}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        initialData={formData}
+        isEdit={isEdit}
+        isView={isView}
+        role={role}
+      />
+    </Box>
+  );
+};
+
+export default Dashboard;
