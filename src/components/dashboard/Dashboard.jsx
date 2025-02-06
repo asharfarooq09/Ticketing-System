@@ -89,6 +89,7 @@ const Dashboard = () => {
   }, [userContext?.user, role, userEmail]);
 
   const handleSubmit = async (values) => {
+    setLoading(true)
     try {
       if (isEdit) {
         const ticketRef = doc(db, "tickets", values.id);
@@ -109,6 +110,8 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error processing ticket: ", error);
     }
+    setLoading(false)
+
   };
 
   const handleAdd = () => {
@@ -219,6 +222,7 @@ const Dashboard = () => {
         isEdit={isEdit}
         isView={isView}
         role={role}
+        loading={loading}
       />
     </Box>
   );

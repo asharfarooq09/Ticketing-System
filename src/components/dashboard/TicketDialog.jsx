@@ -21,6 +21,7 @@ const TicketDialog = ({
   isEdit,
   isView,
   role,
+  loading,
 }) => {
   const validate = (field, value) => {
     switch (field) {
@@ -275,6 +276,7 @@ const TicketDialog = ({
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
           <Button
+          loading={loading}
             variant="contained"
             onClick={(e) =>
               handleSubmit(e, (vals) => {
