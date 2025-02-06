@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Card, CardContent, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+} from "@mui/material";
+import { Skeleton } from "@mui/lab";
 import {
   collection,
   getDocs,
@@ -33,8 +40,8 @@ const initialFormData = {
 
 function getToday() {
   const today = new Date();
-  const day = String(today.getDate()).padStart(2, "0"); // Ensure two digits
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed, so we add 1
+  const day = String(today.getDate()).padStart(2, "0"); 
+  const month = String(today.getMonth() + 1).padStart(2, "0"); 
   const year = today.getFullYear();
 
   const formattedDate = `${day}/${month}/${year}`;
@@ -43,6 +50,7 @@ function getToday() {
 
 const Dashboard = () => {
   const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [isView, setIsView] = useState(false);
@@ -62,27 +70,31 @@ const Dashboard = () => {
   useEffect(() => {
     if (userContext?.user) {
       const fetchTickets = async () => {
-        const querySnapshot = await getDocs(collection(db, "tickets"));
-        const ticketData = querySnapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
-        setTickets(ticketData);
+        setLoading(true);
+        try {
+          const querySnapshot = await getDocs(collection(db, "tickets"));
+          const ticketData = querySnapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          }));
+          setTickets(ticketData);
+        } catch (error) {
+          console.error("Error fetching tickets: ", error);
+        } finally {
+          setLoading(false); 
+        }
       };
       fetchTickets();
     }
   }, [userContext?.user, role, userEmail]);
 
   const handleSubmit = async (values) => {
-    console.log("here");
-
     try {
       if (isEdit) {
         const ticketRef = doc(db, "tickets", values.id);
         await updateDoc(ticketRef, values);
       } else {
         values.date = getToday();
-
         await addDoc(collection(db, "tickets"), values);
       }
       setDialogOpen(false);
@@ -177,13 +189,26 @@ const Dashboard = () => {
               </Button>
             )}
           </Box>
-          <TicketList
-            tickets={tickets}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            role={role}
-          />
+          {loading ? (
+            <>
+              <Skeleton variant="text" width="80%" height={30} />
+              <Skeleton variant="rectangular" width="100%" height={100} />
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={150}
+                sx={{ mt: 2 }}
+              />
+            </>
+          ) : (
+            <TicketList
+              tickets={tickets}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              role={role}
+            />
+          )}
         </CardContent>
       </Card>
       <TicketDialog
